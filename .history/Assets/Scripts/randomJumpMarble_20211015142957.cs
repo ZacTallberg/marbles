@@ -3,7 +3,6 @@ using System.Collections;
 
 public class randomJumpMarble : MonoBehaviour {
 
-	public float shootPower = 0.01f;
 	// Use this for initialization
 	void Start () {
 	
@@ -83,7 +82,7 @@ public class randomJumpMarble : MonoBehaviour {
 			else{
 				thisMarble.randomizedAwayForce = new Vector3 (thisMarble.awayFromPlanet.x, thisMarble.awayFromPlanet.y, Mathf.Clamp (thisMarble.awayFromPlanet.z + randomFloat, -1f, 1f));
 			}
-			marbleObj.AddForce(thisMarble.randomizedAwayForce*thisMarble.shootForce*shootPower);
+			marbleObj.AddForce(thisMarble.randomizedAwayForce*thisMarble.shootForce);
 
 			//Debug.Log ("awayZ triggered: " + randomFloat);
 			return;

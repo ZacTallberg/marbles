@@ -3,7 +3,7 @@ using System.Collections;
 
 public class randomJumpMarble : MonoBehaviour {
 
-	public float shootPower = 0.01f;
+	public float shootPower = 0.1f;
 	// Use this for initialization
 	void Start () {
 	
