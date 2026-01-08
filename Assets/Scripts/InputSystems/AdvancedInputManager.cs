@@ -8,7 +8,6 @@ public class AdvancedInputManager : MonoBehaviour {
     private List<IInputProvider> providers = new List<IInputProvider>();
 
     public float sensitivity = 1.0f;
-    public float fineControlMultiplier = 0.5f; // Factor to reduce sensitivity per active provider
 
     void Awake() {
         if (Instance == null) {
@@ -23,7 +22,9 @@ public class AdvancedInputManager : MonoBehaviour {
     void InitializeProviders() {
         providers.Add(new MouseInputProvider());
         providers.Add(new KeyboardInputProvider());
-        providers.Add(new GyroInputProvider());
+        providers.Add(new GyroscopeRotationProvider());
+        providers.Add(new AccelerometerRotationProvider());
+        providers.Add(new CompassRotationProvider());
         providers.Add(new TouchInputProvider());
     }
 
@@ -32,33 +33,24 @@ public class AdvancedInputManager : MonoBehaviour {
         int activeCount = 0;
 
         foreach (var p in providers) {
-            if (p.IsActive()) {
+            // Only count if it's contributing to rotation
+            Vector2 rot = p.GetRotationInput();
+            if (p.IsActive() && rot.sqrMagnitude > 0.0001f) {
                 activeCount++;
-                totalRotation += p.GetRotationInput();
+                totalRotation += rot;
             }
         }
 
         if (activeCount == 0) return Vector2.zero;
 
-        // Apply "fine control" logic
-        // If 1 input: multiplier = 1
-        // If 2 inputs: multiplier = 0.5 (finer control)
-        // If 3 inputs: multiplier = 0.33...
-        // Formula: 1.0 / (1 + (activeCount - 1) * 2) maybe?
-        // Let's stick to simple: 1.0 / activeCount for averaging, OR
-        // User request: "cumulative input gets more fine"
+        // "Cumulative input gets more fine"
+        // Precision Factor = 1 / Active Count
+        // 1 provider = 100% sensitivity
+        // 2 providers = 50% sensitivity
+        // 3 providers = 33% sensitivity
 
-        // Interpretation:
-        // Input 1 (Mouse) gives delta 10.
-        // Input 2 (Gyro) gives delta 5.
-        // Sum = 15.
-        // If we just sum, it gets FASTER.
-        // "More fine" implies it should be SLOWER or more PRECISE.
-
-        // Let's divide the sensitivity by the active count.
         float precisionFactor = 1.0f / activeCount;
 
-        // Also, apply global sensitivity
         return totalRotation * precisionFactor * sensitivity;
     }
 
@@ -66,10 +58,13 @@ public class AdvancedInputManager : MonoBehaviour {
         Vector3 totalMovement = Vector3.zero;
         int activeCount = 0;
 
+        // We apply similar logic to movement for consistency,
+        // though the user emphasized Rotation.
         foreach (var p in providers) {
-            if (p.IsActive()) {
+            Vector3 mov = p.GetMovementInput();
+            if (p.IsActive() && mov.sqrMagnitude > 0.0001f) {
                 activeCount++;
-                totalMovement += p.GetMovementInput();
+                totalMovement += mov;
             }
         }
 
